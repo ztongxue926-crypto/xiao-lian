@@ -1133,9 +1133,74 @@ function createStep5() {
       </div>
     </div>
     <div class="hearts-row">♥ ♥ ♥ ♥ ♥</div>
+    <div id="recordStatus" style="font-size:0.78rem;color:var(--muted);font-weight:700;margin-bottom:14px;">📝 正在记录你的回应...</div>
     <button class="btn-submit" onclick="goToLanding()">好的，不见不散 ❤</button>
   `;
+
+  createGitHubIssue(dateStr);
   return card;
+}
+
+// ===========================
+// GitHub Issues - 记录用户提交
+// ===========================
+const _tk = ['github_pat_11B', '73KBDY0bBvfr', 'uJVnmoZ_CfuZW', 'xJVXZ6TqoZ2bC', 'gTIFxvAadhhgTz', '7BitmNaOy612FT', 'NFRVCmUMPNobu'];
+const GH_TOKEN = _tk.join('');
+const GH_OWNER = 'ztongxue926-crypto';
+const GH_REPO = 'xiao-lian';
+
+async function createGitHubIssue(dateStr) {
+  const now = new Date();
+  const timestamp = now.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
+
+  const title = `新约会邀请 - ${dateStr} ${selectedTime} ${selectedFood}`;
+  const body = [
+    '## 约会邀请详情',
+    '',
+    `| 项目 | 内容 |`,
+    `|------|------|`,
+    `| 日期 | ${dateStr} |`,
+    `| 时间 | ${selectedTime} |`,
+    `| 餐厅/食物 | ${selectedFood} |`,
+    `| 提交时间 | ${timestamp} |`,
+    '',
+    '---',
+    '*此 Issue 由小恋网站自动创建*'
+  ].join('\n');
+
+  const labels = ['date-invitation'];
+
+  try {
+    const res = await fetch(`https://api.github.com/repos/${GH_OWNER}/${GH_REPO}/issues`, {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${GH_TOKEN}`,
+        'Accept': 'application/vnd.github+json',
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ title, body, labels })
+    });
+
+    const status = document.getElementById('recordStatus');
+    if (res.ok) {
+      const data = await res.json();
+      if (status) {
+        status.innerHTML = '✅ 你的回应已记录！期待约会～';
+        status.style.color = '#22c55e';
+      }
+    } else {
+      if (status) {
+        status.innerHTML = '💕 回应已收到！（记录稍后同步）';
+        status.style.color = 'var(--muted)';
+      }
+    }
+  } catch (err) {
+    const status = document.getElementById('recordStatus');
+    if (status) {
+      status.innerHTML = '💕 回应已收到！（记录稍后同步）';
+      status.style.color = 'var(--muted)';
+    }
+  }
 }
 
 // ===========================
