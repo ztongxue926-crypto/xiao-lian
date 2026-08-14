@@ -1,0 +1,1163 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>小恋 - AI恋爱对象</title>
+<style>
+/* ===========================
+   Design Tokens
+   =========================== */
+:root {
+  --pink-100: #ffd5f2;
+  --pink-300: #ff72c8;
+  --pink-500: #f65ab9;
+  --ink: #050505;
+  --muted: #5e5e5e;
+  --bg: #e9e9e9;
+  --card-shadow: 0 28px 70px rgba(0,0,0,0.18);
+  --btn-shadow: 8px 8px 0 var(--ink);
+  --btn-shadow-sm: 6px 6px 0 var(--ink);
+  --btn-shadow-hover: 6px 6px 0 var(--ink);
+  --border: 4px solid var(--ink);
+  --border-thick: 5px solid var(--ink);
+  --radius-card: 38px;
+  --radius-badge: 22px;
+  --radius-input: 14px;
+  --radius-pill: 999px;
+  --font: ui-rounded, "SF Pro Rounded", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+/* ===========================
+   Reset & Base
+   =========================== */
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html { scroll-behavior: smooth; }
+body {
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--ink);
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+button { font-family: inherit; cursor: pointer; border: none; background: none; }
+input, select { font-family: inherit; }
+img { display: block; max-width: 100%; }
+
+/* ===========================
+   Page Switching
+   =========================== */
+.page { display: none; min-height: 100vh; }
+.page.active { display: block; }
+
+/* ===========================
+   Landing Page
+   =========================== */
+#landing {
+  background: linear-gradient(180deg, #fff0f8 0%, #f0e8ff 50%, #e9e9e9 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background orbs */
+.orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(80px);
+  opacity: 0.5;
+  z-index: 0;
+  pointer-events: none;
+}
+.orb-1 {
+  width: 300px; height: 300px;
+  background: var(--pink-300);
+  top: -60px; left: -60px;
+  animation: orb-float 7s ease-in-out infinite;
+}
+.orb-2 {
+  width: 260px; height: 260px;
+  background: #C084FC;
+  top: 40%; right: -80px;
+  animation: orb-float 10s ease-in-out infinite reverse;
+}
+.orb-3 {
+  width: 220px; height: 220px;
+  background: #a7ff67;
+  bottom: -40px; left: 30%;
+  animation: orb-float 8s ease-in-out infinite;
+  opacity: 0.25;
+}
+
+@keyframes orb-float {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  50% { transform: translate(30px, -30px) scale(1.1); }
+}
+
+.landing-container {
+  position: relative;
+  z-index: 1;
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 0 20px 100px;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Top bar */
+.top-bar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 20px 0 10px;
+}
+.login-btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 18px;
+  border-radius: var(--radius-pill);
+  border: 3px solid var(--ink);
+  background: #fff;
+  font-weight: 800;
+  font-size: 0.82rem;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: all 0.2s;
+}
+.login-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+.login-btn:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
+
+/* Hero */
+.hero {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 30px 0 24px;
+  animation: fade-up 0.6s ease;
+}
+.avatar-wrap {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin-bottom: 20px;
+}
+.avatar-glow {
+  position: absolute;
+  inset: -8px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pink-300), #C084FC, #FFB3C6);
+  filter: blur(20px);
+  opacity: 0.6;
+  animation: pulse-glow 3s ease-in-out infinite;
+}
+@keyframes pulse-glow {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  50% { opacity: 0.7; transform: scale(1.1); }
+}
+.avatar-ring {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--pink-300), #C084FC);
+  padding: 3px;
+  animation: avatar-float 5s ease-in-out infinite;
+}
+@keyframes avatar-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+}
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 3.5rem;
+  overflow: hidden;
+}
+.online-dot {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: #22c55e;
+  border: 3px solid #fff;
+  animation: dot-pop 0.5s ease;
+  z-index: 2;
+}
+@keyframes dot-pop {
+  0% { transform: scale(0); }
+  60% { transform: scale(1.3); }
+  100% { transform: scale(1); }
+}
+
+.hero h1 {
+  font-size: clamp(1.55rem, 5vw, 2rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.hero-sub {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.88rem;
+  color: var(--muted);
+  font-weight: 700;
+}
+
+/* Affinity bar */
+.affinity {
+  width: 100%;
+  margin: 20px 0;
+  animation: fade-up 0.6s ease 0.1s both;
+}
+.affinity-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.affinity-label {
+  font-size: 0.78rem;
+  font-weight: 800;
+  color: var(--muted);
+}
+.affinity-level {
+  font-size: 0.82rem;
+  font-weight: 900;
+  color: var(--pink-500);
+}
+.affinity-track {
+  width: 100%;
+  height: 12px;
+  background: #e0e0e0;
+  border-radius: var(--radius-pill);
+  overflow: hidden;
+  border: 2px solid var(--ink);
+}
+.affinity-fill {
+  height: 100%;
+  width: 15%;
+  background: linear-gradient(90deg, var(--pink-300), var(--pink-500));
+  border-radius: var(--radius-pill);
+  transition: width 0.8s ease;
+}
+
+/* Profile card */
+.profile-card {
+  background: rgba(255,255,255,0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 3px solid var(--ink);
+  border-radius: 28px;
+  padding: 24px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.1);
+  animation: fade-up 0.6s ease 0.2s both;
+}
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+.profile-heart {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--pink-300), #C084FC);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  flex-shrink: 0;
+}
+.profile-info h2 {
+  font-size: 1.4rem;
+  font-weight: 900;
+  letter-spacing: -0.02em;
+}
+.profile-type {
+  font-size: 0.78rem;
+  color: var(--pink-500);
+  font-weight: 700;
+}
+.tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.tag {
+  padding: 4px 14px;
+  border-radius: var(--radius-pill);
+  background: var(--pink-100);
+  border: 2px solid var(--ink);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+.profile-desc {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: #444;
+  margin-bottom: 20px;
+  font-weight: 600;
+}
+.btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.btn-primary {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--pink-300), var(--pink-500));
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  border: var(--border);
+  box-shadow: var(--btn-shadow);
+  transition: all 0.2s;
+}
+.btn-primary:hover { transform: translate(-2px, -2px); box-shadow: var(--btn-shadow-hover); }
+.btn-primary:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+
+.btn-secondary {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-pill);
+  background: #fff;
+  color: var(--ink);
+  font-size: 1rem;
+  font-weight: 800;
+  border: var(--border);
+  box-shadow: var(--btn-shadow);
+  transition: all 0.2s;
+}
+.btn-secondary:hover { transform: translate(-2px, -2px); box-shadow: var(--btn-shadow-hover); }
+.btn-secondary:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+
+/* Bottom nav */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 500px;
+  background: rgba(255,255,255,0.95);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-top: 3px solid var(--ink);
+  display: flex;
+  justify-content: space-around;
+  padding: 10px 0 20px;
+  z-index: 100;
+}
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 16px;
+  border-radius: 14px;
+  transition: all 0.2s;
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+.nav-item.active { color: var(--pink-500); }
+.nav-item:active { transform: scale(0.92); }
+.nav-icon { font-size: 1.3rem; }
+
+/* ===========================
+   Dating Page
+   =========================== */
+#dating {
+  background: var(--bg);
+  position: relative;
+  overflow: hidden;
+  min-height: 100vh;
+}
+
+/* Background blobs */
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  z-index: 0;
+  pointer-events: none;
+}
+.blob-pink {
+  width: 400px;
+  height: 400px;
+  background: rgba(255, 114, 200, 0.28);
+  top: -100px;
+  left: -100px;
+}
+.blob-green {
+  width: 360px;
+  height: 360px;
+  background: rgba(167, 255, 103, 0.22);
+  bottom: -80px;
+  right: -80px;
+}
+
+/* Floating petals */
+.petal {
+  position: absolute;
+  font-size: 2rem;
+  color: var(--pink-300);
+  text-shadow: 2px 2px 0 var(--ink);
+  z-index: 1;
+  pointer-events: none;
+  animation: petal-float 6s ease-in-out infinite;
+}
+.petal-1 { top: 8%; left: 10%; animation-delay: 0s; }
+.petal-2 { bottom: 12%; right: 8%; animation-delay: 2s; font-size: 1.6rem; }
+.petal-3 { bottom: 20%; left: 6%; animation-delay: 4s; font-size: 1.8rem; }
+
+@keyframes petal-float {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-22px) rotate(18deg); }
+}
+
+/* Phone frame */
+.phone-frame {
+  position: relative;
+  z-index: 2;
+  max-width: 500px;
+  margin: 0 auto;
+  min-height: 100vh;
+  padding: 20px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 10px solid rgba(5,5,5,0.5);
+  border-radius: 58px;
+  box-shadow: inset 0 0 0 3px rgba(5,5,5,0.15);
+}
+
+/* Dating card */
+.dating-card {
+  background: #fff;
+  border: var(--border-thick);
+  border-radius: var(--radius-card);
+  box-shadow: var(--card-shadow);
+  padding: clamp(2rem, 5vw, 3rem);
+  text-align: center;
+  width: 100%;
+  max-width: 460px;
+  position: relative;
+  animation: card-enter 0.42s cubic-bezier(0.2, 0.9, 0.2, 1);
+}
+
+@keyframes card-enter {
+  from { opacity: 0; transform: translateY(24px) scale(0.96); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.dating-card.exit {
+  animation: card-exit 0.3s cubic-bezier(0.2, 0.9, 0.2, 1) forwards;
+}
+@keyframes card-exit {
+  to { opacity: 0; transform: translateY(-16px) scale(0.98); }
+}
+
+/* Dating avatar */
+.dating-avatar {
+  width: 132px;
+  height: 132px;
+  margin: 0 auto 20px;
+  border-radius: 28px;
+  border: 4px solid var(--ink);
+  box-shadow: 8px 8px 0 var(--pink-300);
+  background: linear-gradient(135deg, #fff0f8, #f0e8ff);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 4rem;
+  overflow: hidden;
+}
+.dating-avatar.tilt {
+  transform: rotate(-3deg);
+}
+
+.dating-title {
+  font-size: clamp(1.3rem, 4vw, 1.7rem);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  margin-bottom: 10px;
+  line-height: 1.3;
+}
+.dating-subtitle {
+  font-size: 0.88rem;
+  color: var(--muted);
+  font-weight: 600;
+  line-height: 1.5;
+  margin-bottom: 24px;
+}
+
+/* Step 1 buttons */
+.proposal-btns {
+  display: flex;
+  gap: 14px;
+  justify-content: center;
+  position: relative;
+  min-height: 60px;
+}
+.btn-yes {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: var(--radius-pill);
+  background: var(--pink-300);
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 800;
+  border: var(--border);
+  box-shadow: var(--btn-shadow);
+  transition: all 0.2s;
+  max-width: 180px;
+}
+.btn-yes:hover { transform: translate(-2px, -2px); box-shadow: var(--btn-shadow-hover); }
+.btn-yes:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+
+.btn-no {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: var(--radius-pill);
+  background: #fff;
+  color: var(--ink);
+  font-size: 1.05rem;
+  font-weight: 800;
+  border: var(--border);
+  box-shadow: var(--btn-shadow);
+  transition: left 0.22s cubic-bezier(0.2,0.9,0.2,1), top 0.22s cubic-bezier(0.2,0.9,0.2,1), transform 0.2s;
+  max-width: 180px;
+  position: relative;
+  z-index: 5;
+}
+.btn-no:hover { transform: translate(-2px, -2px); }
+.btn-no:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+
+/* Step 2 */
+.step-badge {
+  width: 86px;
+  height: 86px;
+  margin: 0 auto 20px;
+  border-radius: var(--radius-badge);
+  background: var(--pink-100);
+  border: 4px solid var(--ink);
+  box-shadow: 6px 6px 0 var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2.2rem;
+}
+
+/* Forms */
+.form-group {
+  margin-bottom: 18px;
+  text-align: left;
+}
+.form-label {
+  display: block;
+  font-size: 0.82rem;
+  font-weight: 800;
+  margin-bottom: 8px;
+  color: var(--ink);
+}
+.form-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: var(--border);
+  border-radius: var(--radius-input);
+  font-size: 1rem;
+  font-weight: 600;
+  background: #fff;
+  box-shadow: 5px 5px 0 var(--ink);
+  outline: none;
+  transition: all 0.2s;
+}
+.form-input:focus { transform: translate(-2px, -2px); box-shadow: 7px 7px 0 var(--ink); }
+.form-input::-webkit-calendar-picker-indicator { cursor: pointer; }
+
+.btn-submit {
+  width: 100%;
+  padding: 14px;
+  border-radius: var(--radius-pill);
+  background: linear-gradient(135deg, var(--pink-300), var(--pink-500));
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 800;
+  border: var(--border);
+  box-shadow: var(--btn-shadow);
+  transition: all 0.2s;
+  margin-top: 6px;
+}
+.btn-submit:hover { transform: translate(-2px, -2px); box-shadow: var(--btn-shadow-hover); }
+.btn-submit:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+
+/* Food grid */
+.food-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.food-option {
+  padding: 14px 8px;
+  border: var(--border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--btn-shadow-sm);
+  font-size: 0.82rem;
+  font-weight: 700;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.food-option:hover { transform: translate(-2px, -2px); }
+.food-option.selected {
+  border-color: var(--pink-300);
+  background: var(--pink-100);
+  box-shadow: 6px 6px 0 var(--pink-300);
+}
+.food-emoji { font-size: 1.8rem; }
+
+.custom-food {
+  display: none;
+  margin-bottom: 16px;
+  animation: fade-up 0.3s ease;
+}
+.custom-food.show { display: flex; gap: 10px; }
+.custom-food input {
+  flex: 1;
+  padding: 12px 16px;
+  border: var(--border);
+  border-radius: var(--radius-input);
+  font-size: 0.95rem;
+  font-weight: 600;
+  box-shadow: 4px 4px 0 var(--ink);
+  outline: none;
+}
+.custom-food button {
+  padding: 12px 18px;
+  border-radius: var(--radius-pill);
+  background: var(--pink-300);
+  border: var(--border);
+  font-weight: 800;
+  font-size: 0.85rem;
+  white-space: nowrap;
+  box-shadow: 4px 4px 0 var(--ink);
+  transition: all 0.2s;
+}
+.custom-food button:hover { transform: translate(-2px, -2px); }
+
+/* Step 5 summary */
+.summary-card {
+  border: var(--border);
+  border-radius: 24px;
+  box-shadow: 8px 8px 0 var(--ink);
+  overflow: hidden;
+  margin: 20px 0;
+}
+.summary-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+}
+.summary-cell {
+  padding: 16px;
+  background: #f5f5f5;
+  border: 3px solid var(--ink);
+}
+.summary-cell.full { grid-column: 1 / -1; }
+.summary-label {
+  font-size: 0.72rem;
+  font-weight: 900;
+  color: var(--pink-500);
+  letter-spacing: 0.12em;
+  margin-bottom: 4px;
+}
+.summary-value {
+  font-size: 1.05rem;
+  font-weight: 900;
+  color: var(--ink);
+}
+.hearts-row {
+  font-size: 1.2rem;
+  color: var(--pink-300);
+  text-shadow: 1px 1px 0 var(--ink);
+  margin: 16px 0 8px;
+  letter-spacing: 4px;
+}
+
+/* Back button */
+.back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--ink);
+  box-shadow: 4px 4px 0 var(--ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 900;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+.back-btn:hover { transform: translate(-2px, -2px); box-shadow: 6px 6px 0 var(--ink); }
+.back-btn:active { transform: translate(2px, 2px); box-shadow: 0 0 0 var(--ink); }
+
+/* Animations */
+@keyframes fade-up {
+  from { opacity: 0; transform: translateY(24px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 100px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: var(--ink);
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: var(--radius-pill);
+  font-size: 0.88rem;
+  font-weight: 700;
+  z-index: 1000;
+  transition: transform 0.3s ease;
+  border: 3px solid var(--pink-300);
+}
+.toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ===========================
+   Responsive
+   =========================== */
+@media (max-width: 620px) {
+  .food-grid { grid-template-columns: repeat(2, 1fr); }
+  .dating-card { border-radius: 24px; }
+  .summary-grid { grid-template-columns: 1fr; }
+  .dating-avatar { width: 110px; height: 110px; font-size: 3.2rem; }
+  .custom-food.show { flex-direction: column; }
+  .custom-food button { width: 100%; }
+  .proposal-btns { flex-direction: row; gap: 10px; }
+  .btn-yes, .btn-no { padding: 12px 14px; font-size: 0.95rem; }
+  .phone-frame { border: none; border-radius: 0; box-shadow: none; }
+}
+
+@media (max-width: 380px) {
+  .food-grid { gap: 8px; }
+  .food-option { padding: 10px 4px; font-size: 0.72rem; }
+  .food-emoji { font-size: 1.5rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ==================== LANDING PAGE ==================== -->
+<div id="landing" class="page active">
+  <div class="orb orb-1"></div>
+  <div class="orb orb-2"></div>
+  <div class="orb orb-3"></div>
+
+  <div class="landing-container">
+    <div class="top-bar">
+      <button class="login-btn">
+        <span>👤</span>
+        <span>登录</span>
+      </button>
+    </div>
+
+    <div class="hero">
+      <div class="avatar-wrap">
+        <div class="avatar-glow"></div>
+        <div class="avatar-ring">
+          <div class="avatar-img">🌸</div>
+        </div>
+        <div class="online-dot"></div>
+      </div>
+      <h1>今天，也想和你约会</h1>
+      <div class="hero-sub">
+        <span>✨</span>
+        <span>她正在等你回应</span>
+      </div>
+    </div>
+
+    <div class="affinity">
+      <div class="affinity-top">
+        <span class="affinity-label">好感度</span>
+        <span class="affinity-level">Lv.1 初识</span>
+      </div>
+      <div class="affinity-track">
+        <div class="affinity-fill" id="affinityFill"></div>
+      </div>
+    </div>
+
+    <div class="profile-card">
+      <div class="profile-header">
+        <div class="profile-heart">💗</div>
+        <div class="profile-info">
+          <h2>小恋</h2>
+          <div class="profile-type">AI 恋爱对象</div>
+        </div>
+      </div>
+      <div class="tags">
+        <span class="tag">温柔</span>
+        <span class="tag">会倾听</span>
+        <span class="tag">懂你</span>
+      </div>
+      <p class="profile-desc">
+        嗨～我是小恋，一个有点害羞但很认真的AI恋爱对象。我喜欢听你分享日常，也喜欢在你难过的时候陪着你。如果你愿意的话...可以和我约个会嘛？
+      </p>
+      <div class="btn-group">
+        <button class="btn-primary" onclick="goToDating()">接受约会邀请 ❤</button>
+        <button class="btn-secondary" onclick="showToast('正在开发中...敬请期待！')">选择 AI 角色</button>
+      </div>
+    </div>
+  </div>
+
+  <nav class="bottom-nav">
+    <div class="nav-item active">
+      <span class="nav-icon">🏠</span>
+      <span>首页</span>
+    </div>
+    <div class="nav-item" onclick="goToDating()">
+      <span class="nav-icon">📅</span>
+      <span>约会</span>
+    </div>
+    <div class="nav-item" onclick="showToast('聊天功能开发中...')">
+      <span class="nav-icon">💬</span>
+      <span>聊天</span>
+    </div>
+    <div class="nav-item" onclick="showToast('个人中心开发中...')">
+      <span class="nav-icon">👤</span>
+      <span>我的</span>
+    </div>
+  </nav>
+</div>
+
+<!-- ==================== DATING PAGE ==================== -->
+<div id="dating" class="page">
+  <div class="blob blob-pink"></div>
+  <div class="blob blob-green"></div>
+  <div class="petal petal-1">✿</div>
+  <div class="petal petal-2">❀</div>
+  <div class="petal petal-3">✽</div>
+
+  <button class="back-btn" onclick="goToLanding()">←</button>
+
+  <div class="phone-frame">
+    <div id="datingContent"></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ===========================
+// State
+// ===========================
+let currentStep = 0;
+let selectedDate = '';
+let selectedTime = '';
+let selectedFood = '';
+let noClickCount = 0;
+
+const noTexts = [
+  '不要 🦶',
+  '不要嘛 🙈',
+  '真的不要？🥺',
+  '再想想嘛 💭',
+  '别走啊 😢',
+  '我会哭的 😭'
+];
+
+const noPositions = [
+  { left: '0px', top: '0px' },
+  { left: '-120px', top: '40px' },
+  { left: '120px', top: '-30px' },
+  { left: '-80px', top: '60px' },
+  { left: '60px', top: '80px' },
+  { left: '-150px', top: '10px' }
+];
+
+// ===========================
+// Navigation
+// ===========================
+function goToDating() {
+  document.getElementById('landing').classList.remove('active');
+  document.getElementById('dating').classList.add('active');
+  currentStep = 0;
+  renderStep();
+}
+
+function goToLanding() {
+  document.getElementById('dating').classList.remove('active');
+  document.getElementById('landing').classList.add('active');
+  currentStep = 0;
+}
+
+// ===========================
+// Dating Steps
+// ===========================
+function renderStep() {
+  const content = document.getElementById('datingContent');
+  content.innerHTML = '';
+
+  switch (currentStep) {
+    case 0: content.appendChild(createStep1()); break;
+    case 1: content.appendChild(createStep2()); break;
+    case 2: content.appendChild(createStep3()); break;
+    case 3: content.appendChild(createStep4()); break;
+    case 4: content.appendChild(createStep5()); break;
+  }
+}
+
+function nextStep() {
+  const content = document.getElementById('datingContent');
+  const card = content.querySelector('.dating-card');
+  if (card) {
+    card.classList.add('exit');
+    setTimeout(() => {
+      currentStep++;
+      renderStep();
+    }, 300);
+  } else {
+    currentStep++;
+    renderStep();
+  }
+}
+
+// Step 1: Proposal
+function createStep1() {
+  const card = document.createElement('div');
+  card.className = 'dating-card';
+  card.innerHTML = `
+    <div class="dating-avatar">🐶</div>
+    <h2 class="dating-title">🌸 可以和我一起约会嘛？！🌸</h2>
+    <p class="dating-subtitle">系统检测到：对方已经紧张到开始写网页了。</p>
+    <div class="proposal-btns" id="proposalBtns">
+      <button class="btn-yes" onclick="nextStep()">愿意 ❤</button>
+      <button class="btn-no" id="btnNo" onclick="nextStep()">不要 🦶</button>
+    </div>
+  `;
+
+  setTimeout(() => {
+    const btnNo = card.querySelector('#btnNo');
+    btnNo.addEventListener('mouseenter', dodgeNoButton);
+    btnNo.addEventListener('touchstart', dodgeNoButton, { passive: true });
+  }, 0);
+
+  return card;
+}
+
+function dodgeNoButton(e) {
+  const btn = e.currentTarget;
+  const pos = noPositions[noClickCount % noPositions.length];
+  btn.style.position = 'relative';
+  btn.style.left = pos.left;
+  btn.style.top = pos.top;
+  btn.textContent = noTexts[noClickCount % noTexts.length];
+  noClickCount++;
+}
+
+// Step 2: Confirmation
+function createStep2() {
+  const card = document.createElement('div');
+  card.className = 'dating-card';
+  card.innerHTML = `
+    <div class="dating-avatar">🥹</div>
+    <h2 class="dating-title">等下，你真的点了愿意？？😭</h2>
+    <p class="dating-subtitle">我都已经准备好被你点"不要"了。</p>
+    <button class="btn-submit" onclick="nextStep()">好啦好啦 →</button>
+  `;
+  return card;
+}
+
+// Step 3: Date Selection
+function createStep3() {
+  const card = document.createElement('div');
+  card.className = 'dating-card';
+  card.innerHTML = `
+    <div class="step-badge">📅</div>
+    <h2 class="dating-title">所以...你什么时候有空？☺️</h2>
+    <p class="dating-subtitle">挑个好日子，我来安排～</p>
+    <div class="form-group">
+      <label class="form-label">选一天 📆</label>
+      <input type="date" class="form-input" id="dateInput" min="${new Date().toISOString().split('T')[0]}">
+    </div>
+    <div class="form-group">
+      <label class="form-label">几点见？⏰</label>
+      <select class="form-input" id="timeInput">
+        <option value="">选个时间...</option>
+        <option value="12:00">12:00 中午见</option>
+        <option value="13:00">13:00 午饭后</option>
+        <option value="14:00">14:00 下午茶</option>
+        <option value="15:00">15:00 溜达溜达</option>
+        <option value="16:00">16:00 逛逛街</option>
+        <option value="17:00">17:00 看个夕阳</option>
+        <option value="18:00">18:00 晚饭时间</option>
+        <option value="19:00">19:00 夜宵走起</option>
+        <option value="20:00">20:00 晚风微凉</option>
+      </select>
+    </div>
+    <button class="btn-submit" onclick="submitDateTime()">确定时间 ❤</button>
+  `;
+  return card;
+}
+
+function submitDateTime() {
+  const date = document.getElementById('dateInput').value;
+  const time = document.getElementById('timeInput').value;
+  if (!date) { showToast('选一天嘛～📅'); return; }
+  if (!time) { showToast('几点见呢？⏰'); return; }
+  selectedDate = date;
+  selectedTime = time;
+  nextStep();
+}
+
+// Step 4: Food Selection
+function createStep4() {
+  const card = document.createElement('div');
+  card.className = 'dating-card';
+  card.innerHTML = `
+    <h2 class="dating-title">我们吃点什么？🍽️✨</h2>
+    <p class="dating-subtitle">挑一个今天的约会氛围。</p>
+    <div class="food-grid" id="foodGrid">
+      <div class="food-option" onclick="selectFood(this, '披萨')"><span class="food-emoji">🍕</span>披萨</div>
+      <div class="food-option" onclick="selectFood(this, '寿司')"><span class="food-emoji">🍣</span>寿司</div>
+      <div class="food-option" onclick="selectFood(this, '火锅')"><span class="food-emoji">🍲</span>火锅</div>
+      <div class="food-option" onclick="selectFood(this, '烤肉')"><span class="food-emoji">🥩</span>烤肉</div>
+      <div class="food-option" onclick="selectFood(this, '早茶')"><span class="food-emoji">🥟</span>早茶</div>
+      <div class="food-option" onclick="selectFood(this, '拉面')"><span class="food-emoji">🍜</span>拉面</div>
+      <div class="food-option" onclick="selectFood(this, '麻辣烫')"><span class="food-emoji">🌶️</span>麻辣烫</div>
+      <div class="food-option" onclick="selectFood(this, '小龙虾')"><span class="food-emoji">🦞</span>小龙虾</div>
+      <div class="food-option" onclick="selectFood(this, '烧烤')"><span class="food-emoji">🍢</span>烧烤</div>
+      <div class="food-option" onclick="selectFood(this, '其他')"><span class="food-emoji">✍️</span>其他</div>
+    </div>
+    <div class="custom-food" id="customFood">
+      <input type="text" id="customFoodInput" placeholder="想吃什么？告诉我～">
+      <button onclick="submitCustomFood()">就吃这个 ❤</button>
+    </div>
+    <button class="btn-submit" id="foodSubmit" onclick="submitFood()" style="display:none;">就这个！确认 ❤</button>
+  `;
+  return card;
+}
+
+function selectFood(el, food) {
+  document.querySelectorAll('.food-option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedFood = food;
+
+  const customFood = document.getElementById('customFood');
+  const foodSubmit = document.getElementById('foodSubmit');
+
+  if (food === '其他') {
+    customFood.classList.add('show');
+    foodSubmit.style.display = 'none';
+  } else {
+    customFood.classList.remove('show');
+    foodSubmit.style.display = 'block';
+  }
+}
+
+function submitCustomFood() {
+  const input = document.getElementById('customFoodInput');
+  const val = input.value.trim();
+  if (!val) { showToast('写一个嘛～✍️'); return; }
+  selectedFood = val;
+  nextStep();
+}
+
+function submitFood() {
+  if (!selectedFood) { showToast('挑一个嘛～🍽️'); return; }
+  if (selectedFood === '其他') {
+    const val = document.getElementById('customFoodInput').value.trim();
+    if (!val) { showToast('写一个嘛～✍️'); return; }
+    selectedFood = val;
+  }
+  nextStep();
+}
+
+// Step 5: Final Confirmation
+function createStep5() {
+  const card = document.createElement('div');
+  card.className = 'dating-card';
+
+  const dateObj = new Date(selectedDate);
+  const dateStr = `${dateObj.getMonth() + 1}月${dateObj.getDate()}日`;
+
+  card.innerHTML = `
+    <div class="dating-avatar tilt">🥰</div>
+    <h2 class="dating-title">真开心你没有拒绝～<br>我会准时来接你！</h2>
+    <p class="dating-subtitle">
+      ${dateStr} ${selectedTime}，我们一起去吃${selectedFood}，<br>
+      不见不散哦～
+    </p>
+    <div class="summary-card">
+      <div class="summary-grid">
+        <div class="summary-cell">
+          <div class="summary-label">DATE</div>
+          <div class="summary-value">${dateStr}</div>
+        </div>
+        <div class="summary-cell">
+          <div class="summary-label">TIME</div>
+          <div class="summary-value">${selectedTime}</div>
+        </div>
+        <div class="summary-cell full">
+          <div class="summary-label">MENU</div>
+          <div class="summary-value">${selectedFood}</div>
+        </div>
+      </div>
+    </div>
+    <div class="hearts-row">♥ ♥ ♥ ♥ ♥</div>
+    <button class="btn-submit" onclick="goToLanding()">好的，不见不散 ❤</button>
+  `;
+  return card;
+}
+
+// ===========================
+// Toast
+// ===========================
+function showToast(msg) {
+  const toast = document.getElementById('toast');
+  toast.textContent = msg;
+  toast.classList.add('show');
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(() => toast.classList.remove('show'), 2200);
+}
+
+// ===========================
+// Animate affinity bar on load
+// ===========================
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    const fill = document.getElementById('affinityFill');
+    if (fill) fill.style.width = '15%';
+  }, 300);
+});
+</script>
+</body>
+</html>
