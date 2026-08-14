@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>小恋 - AI恋爱对象</title>
+<title>小猪 - AI恋爱对象</title>
 <style>
 /* ===========================
    Design Tokens
@@ -880,6 +880,7 @@ img { display: block; max-width: 100%; }
 // State
 // ===========================
 let currentStep = 0;
+let userNickname = '';
 let selectedDate = '';
 let selectedTime = '';
 let selectedFood = '';
@@ -929,9 +930,10 @@ function renderStep() {
   switch (currentStep) {
     case 0: content.appendChild(createStep1()); break;
     case 1: content.appendChild(createStep2()); break;
-    case 2: content.appendChild(createStep3()); break;
-    case 3: content.appendChild(createStep4()); break;
-    case 4: content.appendChild(createStep5()); break;
+    case 2: content.appendChild(createStepNickname()); break;
+    case 3: content.appendChild(createStep3()); break;
+    case 4: content.appendChild(createStep4()); break;
+    case 5: content.appendChild(createStep5()); break;
   }
 }
 
@@ -994,6 +996,35 @@ function createStep2() {
     <button class="btn-submit" onclick="nextStep()">好啦好啦 →</button>
   `;
   return card;
+}
+
+// Step 2.5: Nickname Input
+function createStepNickname() {
+  const card = document.createElement('div');
+  card.className = 'dating-card';
+  card.innerHTML = `
+    <div class="step-badge">🥰</div>
+    <h2 class="dating-title">先告诉我怎么称呼你呀？✨</h2>
+    <p class="dating-subtitle">想用一个专属昵称叫你～</p>
+    <div class="form-group">
+      <label class="form-label">你的昵称 💬</label>
+      <input type="text" class="form-input" id="nicknameInput" placeholder="输入一个昵称..." maxlength="20" autocomplete="off">
+    </div>
+    <button class="btn-submit" onclick="submitNickname()">就叫我这个 ❤</button>
+  `;
+  setTimeout(() => {
+    const input = card.querySelector('#nicknameInput');
+    if (input) input.focus();
+  }, 100);
+  return card;
+}
+
+function submitNickname() {
+  const input = document.getElementById('nicknameInput');
+  const val = input.value.trim();
+  if (!val) { showToast('写个昵称嘛～💬'); return; }
+  userNickname = val;
+  nextStep();
 }
 
 // Step 3: Date Selection
@@ -1113,11 +1144,15 @@ function createStep5() {
     <div class="dating-avatar tilt">🥰</div>
     <h2 class="dating-title">真开心你没有拒绝～<br>我会准时来接你！</h2>
     <p class="dating-subtitle">
-      ${dateStr} ${selectedTime}，我们一起去吃${selectedFood}，<br>
+      ${userNickname}，${dateStr} ${selectedTime}，我们一起去吃${selectedFood}，<br>
       不见不散哦～
     </p>
     <div class="summary-card">
       <div class="summary-grid">
+        <div class="summary-cell">
+          <div class="summary-label">NAME</div>
+          <div class="summary-value">${userNickname}</div>
+        </div>
         <div class="summary-cell">
           <div class="summary-label">DATE</div>
           <div class="summary-value">${dateStr}</div>
@@ -1152,19 +1187,20 @@ async function createGitHubIssue(dateStr) {
   const now = new Date();
   const timestamp = now.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai' });
 
-  const title = `新约会邀请 - ${dateStr} ${selectedTime} ${selectedFood}`;
+  const title = `新约会邀请 - ${userNickname} - ${dateStr} ${selectedTime} ${selectedFood}`;
   const body = [
     '## 约会邀请详情',
     '',
     `| 项目 | 内容 |`,
     `|------|------|`,
+    `| 昵称 | ${userNickname} |`,
     `| 日期 | ${dateStr} |`,
     `| 时间 | ${selectedTime} |`,
     `| 餐厅/食物 | ${selectedFood} |`,
     `| 提交时间 | ${timestamp} |`,
     '',
     '---',
-    '*此 Issue 由小恋网站自动创建*'
+    '*此 Issue 由小猪网站自动创建*'
   ].join('\n');
 
   const labels = ['date-invitation'];
